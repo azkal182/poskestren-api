@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+//datasource db {
+  //provider = "sqlite"
+ // url      = env("DATABASE_URL")
+//}
+
+model Patient {
+  id                Int     @id @default(autoincrement())
+  name              String
+  address           String?
+  hospitalizations  Hospitalization?
+  checkUps          CheckUp?
+  borrowMoneyInCash BorrowMoneyInCash?
+  hostelId          Int
+  hostel            Hostel             @relation(fields: [hostelId], references: [id])
+}
+
+model Hospitalization {
+  id         Int     @id @default(autoincrement())
+  patientId   Int      @unique
+  complaint  String
+  status     String?
+  created_at DateTime  @default(now())
+  return_at  DateTime?
+  selisih Int?
+  patient    Patient   @relation(fields: [patientId], references: [id])
+}
+
+model CheckUp {
+  id                Int     @id @default(autoincrement())
+  patientId         Int                @unique
+  requirement       String
+  payment_source    String
+  payment_total     Float?
+  payment           Float?
+  status            String?
+  created_at        DateTime           @default(now())
+  payment_at        DateTime?
+  patient           Patient            @relation(fields: [patientId], references: [id])
+  borrowMoneyInCash BorrowMoneyInCash?
+}
+
+model BorrowMoneyInCash {
+  id                Int     @id @default(autoincrement())
+  patientId         Int       @unique
+  checkUpId         Int       @unique
+  payment           Float
+  status            String?
+  payment_date_time DateTime?
+  created_at        DateTime  @default(now())
+  payment_at        DateTime?
+  patient           Patient   @relation(fields: [patientId], references: [id])
+  checkUp           CheckUp   @relation(fields: [checkUpId], references: [id])
+}
+
+model Hostel {
+  id      Int     @id @default(autoincrement())
+  name    String
+  patient Patient[]
+}
